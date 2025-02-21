@@ -1,45 +1,33 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { useState, useEffect } from "react";
-import { auth } from "./firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Auth from "./components/Auth";
-
-const Dashboard = () => {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold">Welcome to Chess Review App</h1>
-      <p className="text-gray-600">Your chess matches will be stored here.</p>
-    </div>
-  );
-};
+import Dashboard from "./components/Dashboard";
+import { auth } from "./firebaseConfig";
+import { signOut } from "firebase/auth";
 
 function App() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
-
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={user ? <Navigate to="/dashboard" /> : <Auth />}
-        />
-        <Route
-          path="/dashboard"
-          element={user ? <Dashboard /> : <Navigate to="/" />}
-        />
-      </Routes>
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+        <h1 className="text-2xl font-bold mb-4">Chess Review App</h1>
+        {user ? (
+          <>
+            <button
+              onClick={() => signOut(auth).then(() => setUser(null))}
+              className="px-4 py-2 bg-red-500 text-white rounded mb-4"
+            >
+              Sign Out
+            </button>
+            <Routes>
+              <Route path="/" element={<Dashboard user={user} />} />
+            </Routes>
+          </>
+        ) : (
+          <Auth setUser={setUser} />
+        )}
+      </div>
     </Router>
   );
 }
